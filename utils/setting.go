@@ -256,8 +256,6 @@ func init() {
 	beego.Info("initLog over")
 	initMedia()
 	beego.Info("initMedia over")
-	initNode()
-	beego.Info("initNode over")
 	initResources()
 	beego.Info("initResources over")
 	otherInit()
