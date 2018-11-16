@@ -1,0 +1,42 @@
+{
+  "name": "ledgerco",
+  "version": "1.1.3",
+  "description": "Node API for Ledger Hardware Wallets (HW.1 / Nano / Nano S / Blue)",
+  "main": "./src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LedgerHQ/ledger-node-js-api"
+  },
+  "keywords": [
+    "Ledger",
+    "Wallet",
+    "HW.1",
+    "Bitcoin",
+    "Ethereum",
+    "Hardware Wallet"
+  ],
+  "author": "Nicolas Bacca",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/LedgerHQ/ledger-node-js-api/issues"
+  },
+  "homepage": "https://github.com/LedgerHQ/ledger-node-js-api",
+  "dependencies": {
+    "node-hid": "0.5.7",
+    "process.args": "0.0.6"
+  },
+  "devDependencies": {
+    "browserify": "13.1.0",
+    "uglify-js": "2.7.3"
+  },
+  "scripts": {
+    "test": "node test/tests-node.js",
+    "browserify-test": "browserify -s=runTests -o test/tests-browser.js test/tests-node.js",
+    "browserify": "browserify -s=ledger -o browser/ledger.js src/index.js",
+    "uglify": "uglifyjs -o browser/ledger.min.js browser/ledger.js",
+    "clean": "rm -f browser/ledger.js browser/ledger.min.js"
+  },
+  "browser": {
+    "./src/ledger-comm-node.js": false
+  }
+}

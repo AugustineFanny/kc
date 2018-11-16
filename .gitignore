@@ -1,0 +1,12 @@
+lastupdate.tmp
+routers/commentsRouter_controllers.go
+.idea/
+kuangchi_backend
+front/node_modules
+front/dist
+dump.rdb
+bitaddress/address*
+bitaddress/node_modules
+bfquery/bfquery
+nohup.out
+.DS_Store

@@ -1,0 +1,81 @@
+{
+  "rate_bases":
+  [
+    "USD"
+  ],
+  "payment_methods":
+  [
+    {"value":"ALIPAY", "name":"支付宝"},
+    {"value":"NATIONAL_BANK", "name":"国内银行转账"},
+    {"value":"WECHAT", "name":"微信支付"},
+
+    {"value":"INTERNATIONAL_WIRE_SWIFT", "name":"国际电汇 (SWIFT)"},
+    {"value":"OTHER", "name":"其它在线付款方式"},
+    {"value":"OKPAY", "name":"OKPay"},
+    {"value":"PAYPAL", "name":"Paypal"},
+    {"value":"WEBMONEY", "name":"WebMoney"},
+    {"value":"MONEYBOOKERS", "name":"Moneybookers / Skrill"},
+    {"value":"NETELLER", "name":"Neteller"},
+    {"value":"WU", "name":"西联汇款"},
+    {"value":"MONEYGRAM", "name":"Perfect Money"},
+    {"value":"PERFECT_MONEY", "name":"WebMoney"},
+    {"value":"CASHU", "name":"CashU"},
+    {"value":"PAYZA", "name":"Payza"},
+    {"value":"EGOPAY", "name":"EgoPay"},
+    {"value":"GIFT_CARD_CODE_GLOBAL", "name":"礼品卡代码（全球）"},
+    {"value":"TRANSFERWISE", "name":"Transferwise"},
+    {"value":"RIA", "name":"RIA Money Transfer"},
+    {"value":"SOLIDTRUSTPAY", "name":"SolidTrustPay"},
+    {"value":"PAXUM", "name":"Paxum"},
+    {"value":"PAYEER", "name":"Payeer"},
+    {"value":"CREDITCARD", "name":"信用卡"}
+  ],
+  "countries":
+  [
+    {"value":"CN", "name":"中国"},
+    {"value":"HK", "name":"香港"},
+    {"value":"IN", "name":"印度"},
+    {"value":"JP", "name":"日本"},
+    {"value":"MO", "name":"澳门"},
+    {"value":"MY", "name":"马来西亚"},
+    {"value":"SG", "name":"新加坡"},
+    {"value":"KR", "name":"韩国"},
+    {"value":"TW", "name":"台湾"},
+    {"value":"TH", "name":"泰国"},
+    {"value":"VN", "name":"越南"},
+
+    {"value":"FR", "name":"法国"},
+    {"value":"DE", "name":"德国"},
+    {"value":"GB", "name":"英国"},
+    {"value":"IT", "name":"意大利"},
+    {"value":"NL", "name":"荷兰"},
+    {"value":"RU", "name":"俄罗斯"},
+    {"value":"CH", "name":"瑞士"},
+    {"value":"UA", "name":"乌克兰"},
+
+    {"value":"CA", "name":"加拿大"},
+    {"value":"MX", "name":"墨西哥"},
+    {"value":"US", "name":"美国"},
+
+    {"value":"AU", "name":"澳大利亚"},
+    {"value":"NZ", "name":"新西兰"},
+
+    {"value":"AR", "name":"阿根廷"},
+    {"value":"BR", "name":"巴西"},
+    {"value":"CL", "name":"智利"},
+    {"value":"CO", "name":"哥伦比亚"},
+    {"value":"VE", "name":"委内瑞拉"}
+  ],
+  "units":
+  [
+    {"value":"AUD", "name":"AUD"},
+    {"value":"CHF", "name":"CHF"},
+    {"value":"CNY", "name":"CNY"},
+    {"value":"EUR", "name":"EUR"},
+    {"value":"GBP", "name":"GBP"},
+    {"value":"HKD", "name":"HKD"},
+    {"value":"JPY", "name":"JPY"},
+    {"value":"USD", "name":"USD"},
+    {"value":"AED", "name":"AED"}
+  ]
+}
