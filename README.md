@@ -16,6 +16,9 @@
     npm install
     npm run build
 
+## 创建数据库
+    create database gcexserver default character set utf8;
+
 ## 启动
 
     bee run
@@ -23,7 +26,6 @@
 ## 创建超级管理员
 
 初始化超级管理员:
-
     insert into admin(username, password, salt, super, create_time, last_time) value("admin", "3eee0d5225c27509342f9a1e3a11de59237827c15befcfc8085ac61abd3ba3e6bef2635ad31c0cbd822f328626d2ad359ed8", "iFkzSESAgZ", 1, NOW(), NOW());
 
 username: admin
