@@ -16,6 +16,10 @@
     npm install
     npm run build
 
+## 创建日志文件夹和上传文件夹
+    mkdir -p /var/upload/uphp/gcexserver
+    mkdir /var/log/kuangchi
+
 ## 创建数据库
     create database gcexserver default character set utf8;
 

@@ -85,13 +85,14 @@ func createUser(u *User, inviteCode string) (err error) {
 	u.EncodePasswd()
 	u.Language = "en"
 	o := orm.NewOrm()
-	u.InviteCode = utils.RandomCode(8)
-	if o.QueryTable("user").Filter("InviteCode", u.InviteCode).Exist() {
+	
+	for var i = 0; i < 10; i++ {
 		u.InviteCode = utils.RandomCode(8)
-		if o.QueryTable("user").Filter("InviteCode", u.InviteCode).Exist() {
-			u.InviteCode = utils.RandomCode(8)
+		if !o.QueryTable("user").Filter("InviteCode", u.InviteCode).Exist() {
+			break
 		}
 	}
+
 	uid, err := o.Insert(u)
 	if err != nil {
 		beego.Error(err)
