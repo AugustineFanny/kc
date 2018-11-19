@@ -86,7 +86,8 @@ func createUser(u *User, inviteCode string) (err error) {
 	u.Language = "en"
 	o := orm.NewOrm()
 	
-	for var i = 0; i < 10; i++ {
+	var i int
+	for i = 0; i < 10; i++ {
 		u.InviteCode = utils.RandomCode(8)
 		if !o.QueryTable("user").Filter("InviteCode", u.InviteCode).Exist() {
 			break
