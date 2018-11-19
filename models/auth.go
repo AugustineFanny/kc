@@ -88,7 +88,7 @@ func createUser(u *User, inviteCode string) (err error) {
 	
 	var i int
 	for i = 0; i < 10; i++ {
-		u.InviteCode = utils.RandomCode(8)
+		u.InviteCode = utils.RandomCaptcha(8)
 		if !o.QueryTable("user").Filter("InviteCode", u.InviteCode).Exist() {
 			break
 		}
