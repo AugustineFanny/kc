@@ -6,7 +6,7 @@
     go get github.com/golang/freetype
     go get github.com/dgrijalva/jwt-go
     go get github.com/spf13/cast
-    go get github.com/ethereum/go-ethereum
+    go get github.com/ethereum/go-ethereum/common
     go get github.com/go-sql-driver/mysql
     go get github.com/satori/go.uuid
 
