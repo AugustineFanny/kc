@@ -14,7 +14,7 @@
 
     cd front
     npm install
-    npm run build
+    npm start
 
 ## 创建日志文件夹和上传文件夹
     mkdir -p /var/upload/uphp/gcexserver
