@@ -1,3 +1,9 @@
+## 环境
+
+    ubuntu 16.04
+    apt install mysql redis libmysqlclient-dev
+    安装golang，node
+
 ## 依赖
 
     go get github.com/astaxie/beego
