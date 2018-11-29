@@ -21,7 +21,7 @@ func init() {
 			beego.NSRouter("/exchanges", &controllers.PublicController{}, "get:Exchanges"),
 			beego.NSRouter("/exchange/:exchange", &controllers.PublicController{}, "get:Exchange"),
 			beego.NSRouter("/:currency/nodes", &controllers.PublicController{}, "get:Nodes"),
-			beego.NSRouter("/FET/exchange", &controllers.PublicController{}, "get:FETExchange"),
+			beego.NSRouter("/IUU/exchange", &controllers.PublicController{}, "get:IUUExchange"),
 			beego.NSRouter("/FET/price", &controllers.PublicController{}, "get:FETPrice"),
 
 			//beego.NSRouter("/btcdo-script", &controllers.PublicController{}, "get:GetBtcdoScript;post:BtcdoScript"),

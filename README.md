@@ -1,7 +1,7 @@
 ## 环境
 
     ubuntu 16.04
-    apt install mysql redis libmysqlclient-dev
+    apt install mysql redis libmysqlclient-dev python make g++
     安装golang，node
 
 ## 依赖

@@ -73,9 +73,9 @@ func (u *PublicController) Nodes() {
 	u.ServeJSON()
 }
 
-// @router /public/FET/exchange [get]
-func (u *PublicController) FETExchange() {
-	u.Data["json"] = result.Success(models.GetFETExchange())
+// @router /public/IUU/exchange [get]
+func (u *PublicController) IUUExchange() {
+	u.Data["json"] = result.Success(models.GetIUUExchange())
 	u.ServeJSON()
 }
 
