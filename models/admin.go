@@ -746,22 +746,12 @@ func UserRecharge(uid int, currency string ,amount float64) error {
 		o.Rollback()
 		return err
 	}
-	//如果是FET，直接锁仓
-	if currency == "FET" {
+	//如果是IUU，直接锁仓
+	if currency == "IUU" {
 		user := GetUserById(uid)
-		switch utils.Period {
-		case utils.UpComping, utils.Footstone:
-			expire := utils.FootstoneExpireDate
-			if err := handleLocked(o, user, currency, amount, 0, expire); err != nil {
-				o.Rollback()
-				return err
-			}
-		case utils.Angel:
-			expire := time.Now().AddDate(0, 0, 60)
-			if err := handleLocked(o, user, currency, amount, 0, expire); err != nil {
-				o.Rollback()
-				return err
-			}
+		if err := handleLocked(o, user, currency, amount * 0.2, 0); err != nil {
+			o.Rollback()
+			return err
 		}
 	}
 	o.Commit()
@@ -1056,20 +1046,9 @@ func ConfirmOrder(id, status int, remark string) error {
 			return result.ErrCode(100102)
 		}
 		u := GetUserById(subscription.Uid)
-		//认购直接锁仓
-		switch utils.Period {
-		case utils.Footstone:
-			expire := utils.FootstoneExpireDate
-			if err := handleLocked(o, u, subscription.Currency, subscription.CurAmount, 0, expire); err != nil {
-				o.Rollback()
-				return err
-			}
-		case utils.Angel:
-			expire := time.Now().AddDate(0, 0, 60)
-			if err := handleLocked(o, u, subscription.Currency, subscription.CurAmount, 1, expire); err != nil {
-				o.Rollback()
-				return err
-			}
+		if err := handleLocked(o, u, subscription.Currency, subscription.CurAmount, 0); err != nil {
+			o.Rollback()
+			return err
 		}
 	}
 	o.Commit()
