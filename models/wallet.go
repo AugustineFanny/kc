@@ -507,15 +507,6 @@ func GetOrders(u *User, pageNo int64) *utils.Page {
 	return nil
 }
 
-func GetOrder(u *User, order string) (*KcSubscription, error) {
-	o := orm.NewOrm()
-	subscription := KcSubscription{Uid: u.Id, Order: order}
-	if err := o.Read(&subscription, "uid", "order"); err != nil {
-		return nil, result.ErrCode(100410)
-	}
-	return &subscription, nil
-}
-
 func GetHashrate(u *User) map[string]float64 {
 	sql := `SELECT FLOOR(amount) amounts, user.id uid, user.inviter_id, user.parents FROM kc_locked
 			LEFT JOIN user ON kc_locked.uid = user.id

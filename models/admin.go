@@ -1002,62 +1002,62 @@ func BackGetSubmissions(order string) ([]*KcSubscriptionSubmission, error) {
 }
 
 func ConfirmOrder(id, status int, remark string) error {
-	if status == 2 && remark != "审核通过" {
-		return errors.New("无效参数 remark")
-	}
-	subscription := KcSubscription{Id: id}
-	o := orm.NewOrm()
-	o.Begin()
-	if err := o.Read(&subscription); err != nil {
-		o.Rollback()
-		return err
-	}
-	if err := o.Read(&subscription, "order"); err != nil {
-		o.Rollback()
-		return err
-	}
-	if subscription.Status != 1 {
-		o.Rollback()
-		return errors.New("状态已改变")
-	}
-	subscription.AuthTime = time.Now()
-	subscription.Status = status
-	subscription.Remark = remark
-	if _, err := o.Update(&subscription, "status", "remark", "auth_time"); err != nil {
-		o.Rollback()
-		return err
-	}
-	submissionStatus := 2
-	if status == 0 {
-		submissionStatus = 1
-	}
-	if _, err := o.QueryTable("kc_subscription_submission").Filter("order", subscription.Order).Filter("status", 0).Update(orm.Params{
-		"AuthTime": time.Now(),
-		"Status": submissionStatus,
-		"Remark": remark,
-	}); err != nil {
-		o.Rollback()
-		return err
-	}
-	if status == 2 {
-		if err := AddAmount(o, subscription.Uid, subscription.CurAmount, subscription.Currency, "subscription"); err != nil {
-			o.Rollback()
-			beego.Error(err)
-			return result.ErrCode(100102)
-		}
-		u := GetUserById(subscription.Uid)
-		if err := handleLocked(o, u, subscription.Currency, subscription.CurAmount, 0); err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	if status == 2 {
-		message := fmt.Sprintf("获得 %f %s", subscription.CurAmount, subscription.Currency)
-		messageEn := fmt.Sprintf("Get %f %s", subscription.CurAmount, subscription.Currency)
-		messageKo := fmt.Sprintf("얻다 %f %s", subscription.CurAmount, subscription.Currency)
-		messageJp := fmt.Sprintf("獲得 %f %s", subscription.CurAmount, subscription.Currency)
-		SetMessage(subscription.Uid, message, messageEn, messageKo, messageJp, "")
-	}
+	//if status == 2 && remark != "审核通过" {
+	//	return errors.New("无效参数 remark")
+	//}
+	//subscription := KcSubscription{Id: id}
+	//o := orm.NewOrm()
+	//o.Begin()
+	//if err := o.Read(&subscription); err != nil {
+	//	o.Rollback()
+	//	return err
+	//}
+	//if err := o.Read(&subscription, "order"); err != nil {
+	//	o.Rollback()
+	//	return err
+	//}
+	//if subscription.Status != 1 {
+	//	o.Rollback()
+	//	return errors.New("状态已改变")
+	//}
+	//subscription.AuthTime = time.Now()
+	//subscription.Status = status
+	//subscription.Remark = remark
+	//if _, err := o.Update(&subscription, "status", "remark", "auth_time"); err != nil {
+	//	o.Rollback()
+	//	return err
+	//}
+	//submissionStatus := 2
+	//if status == 0 {
+	//	submissionStatus = 1
+	//}
+	//if _, err := o.QueryTable("kc_subscription_submission").Filter("order", subscription.Order).Filter("status", 0).Update(orm.Params{
+	//	"AuthTime": time.Now(),
+	//	"Status": submissionStatus,
+	//	"Remark": remark,
+	//}); err != nil {
+	//	o.Rollback()
+	//	return err
+	//}
+	//if status == 2 {
+	//	if err := AddAmount(o, subscription.Uid, subscription.CurAmount, subscription.Currency, "subscription"); err != nil {
+	//		o.Rollback()
+	//		beego.Error(err)
+	//		return result.ErrCode(100102)
+	//	}
+	//	u := GetUserById(subscription.Uid)
+	//	if err := handleLocked(o, u, subscription.Currency, subscription.CurAmount, 0); err != nil {
+	//		o.Rollback()
+	//		return err
+	//	}
+	//}
+	//o.Commit()
+	//if status == 2 {
+	//	message := fmt.Sprintf("获得 %f %s", subscription.CurAmount, subscription.Currency)
+	//	messageEn := fmt.Sprintf("Get %f %s", subscription.CurAmount, subscription.Currency)
+	//	messageKo := fmt.Sprintf("얻다 %f %s", subscription.CurAmount, subscription.Currency)
+	//	messageJp := fmt.Sprintf("獲得 %f %s", subscription.CurAmount, subscription.Currency)
+	//	SetMessage(subscription.Uid, message, messageEn, messageKo, messageJp, "")
+	//}
 	return nil
 }

@@ -441,19 +441,6 @@ func (u *WalletController) Orders() {
 	u.ServeJSON()
 }
 
-// @router /wallet/order/:order [get]
-func (u *WalletController) GetOrder() {
-	order := u.GetString(":order")
-	user := u.GetUser()
-	detail, err := models.GetOrder(user, order)
-	if err != nil {
-		u.Error(err)
-		return
-	}
-	u.Data["json"] = result.Success(detail)
-	u.ServeJSON()
-}
-
 // @router /wallet/hashrate [get]
 func (u *WalletController) Hashrate() {
 	user := u.GetUser()

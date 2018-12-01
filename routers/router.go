@@ -70,7 +70,6 @@ func init() {
 			beego.NSRouter("/instations", &controllers.WalletController{}, "get:Instations"),
 			beego.NSRouter("/inlocked", &controllers.WalletController{}, "get:Inlocked"),
 			beego.NSRouter("/orders", &controllers.WalletController{}, "get:Orders;post:CreateOrder"),
-			beego.NSRouter("/order/:order", &controllers.WalletController{}, "get:GetOrder"),
 			beego.NSRouter("/hashrate", &controllers.WalletController{}, "get:Hashrate"),
 		),
 		//后台管理API
