@@ -107,7 +107,6 @@ func init() {
 			beego.NSRouter("/fund-changes", &controllers.AdminController{}, "get:FundChanges"),
 			beego.NSRouter("/profit-date", &controllers.AdminController{}, "get:ProfitDate"),
 			beego.NSRouter("/profit-month", &controllers.AdminController{}, "get:ProfitMonth"),
-			beego.NSRouter("/predistribution", &controllers.AdminController{}, "get:Predistribution"),
 			beego.NSRouter("/subscriptions", &controllers.AdminController{}, "get:GetSubscriptions"),
 			beego.NSRouter("/order/:order/submissions", &controllers.AdminController{}, "get:GetSubmissions"),
 			beego.NSRouter("/order", &controllers.AdminController{}, "post:ConfirmOrder"),
