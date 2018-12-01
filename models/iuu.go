@@ -84,3 +84,14 @@ func CreateOrder(u *User, dest, base string, amount, curAmount float64) error {
 	SetMessage(u.Id, message, messageEn, messageKo, messageJp, "")
 	return nil
 }
+
+func Locked(u *User, currency string, amount float64) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	if err := handleLocked(o, u, currency, amount * 6, 2); err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
+}

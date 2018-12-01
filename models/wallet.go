@@ -311,17 +311,6 @@ func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class i
 	return nil
 }
 
-func Locked(u *User, currency string, amount float64) (err error) {
-	o := orm.NewOrm()
-	o.Begin()
-	if err := handleLocked(o, u, currency, amount, 2); err != nil {
-		o.Rollback()
-		return err
-	}
-	o.Commit()
-	return nil
-}
-
 func GetLocked(u *User, currency string) []*KcLocked {
 	var list []*KcLocked
 	o := orm.NewOrm()
