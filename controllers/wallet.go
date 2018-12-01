@@ -397,73 +397,6 @@ func (u *WalletController) Inlocked() {
 	u.ServeJSON()
 }
 
-// @router /wallet/locked/:id/unlock [post]
-func (u *WalletController) UnLock() {
-	id, err := u.GetInt(":id")
-	if err != nil {
-		u.Error("invalid")
-		return
-	}
-	var form struct {
-		VerifyMode  string  `json:"verify_mode"`
-		VerifyCode  string  `json:"verify_code"`
-		FundPassword string `json:"fund_password"`
-	}
-	if err := json.Unmarshal(u.Ctx.Input.RequestBody, &form); err != nil {
-		u.Error("invalid args")
-		return
-	}
-	user := u.GetUser()
-	switch form.VerifyMode {
-	case "EMAIL":
-		if user.Email == "" {
-			u.Error(100320)
-			return
-		}
-		captcha := utils.CaptchaGet(user.Email, "TRANSFERUNLOCK")
-		if captcha == "" {
-			u.Error(100307)
-			return
-		}
-		if captcha != form.VerifyCode {
-			u.Error(100308)
-			return
-		}
-	case "SMS":
-		if user.Mobile == "" {
-			u.Error(100321)
-			return
-		}
-		captcha := utils.CaptchaGet(user.CountryCode + user.Mobile, "TRANSFERUNLOCK")
-		if captcha == "" {
-			u.Error(100307)
-			return
-		}
-		if captcha != form.VerifyCode {
-			u.Error(100308)
-			return
-		}
-	default:
-		u.Error("invalid verify_mode")
-		return
-	}
-	if !user.ValidateFundPassword(form.FundPassword) {
-		u.Error(100110)
-		return
-	}
-	if err := models.UnLock(user, id); err != nil {
-		u.Error(err)
-		return
-	}
-	if form.VerifyMode == "EMAIL" {
-		utils.CaptchaDel(user.Email, "TRANSFERUNLOCK")
-	}
-	if form.VerifyMode == "SMS" {
-		utils.CaptchaDel(user.CompleteMobile(), "TRANSFERUNLOCK")
-	}
-	u.Ok()
-}
-
 // @router /wallet/orders [post]
 func (u *WalletController) CreateOrder() {
 	var form struct {
@@ -487,15 +420,14 @@ func (u *WalletController) CreateOrder() {
 		u.Error(100110)
 		return
 	}
-	//目前只能认购FET
-	form.Dest = "FET"
-	code, err := models.CreateOrderNew(user, form.Dest, form.Base, form.Amount, form.CurAmount)
+	//目前只能认购IUU
+	form.Dest = "IUU"
+	err := models.CreateOrder(user, form.Dest, form.Base, form.Amount, form.CurAmount)
 	if err != nil {
 		u.Error(err)
 		return
 	}
-	u.Data["json"] = result.Success(code)
-	u.ServeJSON()
+	u.Ok()
 }
 
 // @router /wallet/orders [get]
@@ -520,38 +452,6 @@ func (u *WalletController) GetOrder() {
 	}
 	u.Data["json"] = result.Success(detail)
 	u.ServeJSON()
-}
-
-// @router /wallet/order/:order [delete]
-func (u *WalletController) DeleteOrder() {
-	order := u.GetString(":order")
-	user := u.GetUser()
-	if err := models.CancelOrder(user, order); err != nil {
-		u.Error(err)
-		return
-	}
-	u.Ok()
-}
-
-// @router /wallet/order/:order/submission [post]
-func (u *WalletController) Submission() {
-	order := u.GetString(":order")
-	hash := u.GetString("hash")
-	if hash == "" {
-		u.Error("missing hash")
-		return
-	}
-	user := u.GetUser()
-	screenshot, err := u.SaveImg(user.Id, utils.SubmissionPath, "screenshot", true)
-	if err != nil {
-		u.Error(err)
-		return
-	}
-	if err := models.SubmissionOrder(user, order, hash, screenshot); err != nil {
-		u.Error(err)
-		return
-	}
-	u.Ok()
 }
 
 // @router /wallet/hashrate [get]

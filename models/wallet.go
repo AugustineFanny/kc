@@ -281,14 +281,13 @@ func UsableBalance(u *User, currency string, rates ...float64) float64 {
 	return utils.ShowFloat(res, 6)
 }
 
-func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class int, expire time.Time) (err error) {
+func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class int) (err error) {
 	locked := KcLocked{
 		Uid: u.Id,
 		Currency: currency,
 		Amount: amount,
 		TotalAmount: amount,
 		StartDate: time.Now(),
-		ExpireDate: expire,
 		Class: class,
 	}
 	if u.InviterId == 0 {
@@ -318,22 +317,9 @@ func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class i
 func Locked(u *User, currency string, amount float64) (err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	switch utils.Period {
-	case utils.UpComping: return result.ErrMsg("UpComing")
-	case utils.Three: return result.ErrMsg("Completed")
-	case utils.Footstone:
-		expire := utils.FootstoneExpireDate
-		if err := handleLocked(o, u, currency, amount, 2, expire); err != nil {
-			o.Rollback()
-			return err
-		}
-	case utils.Angel:
-		expire := time.Now().AddDate(0, 0, 60)
-		if err := handleLocked(o, u, currency, amount, 1, expire); err != nil {
-			o.Rollback()
-			return err
-		}
-	default: return result.ErrMsg("UpComing")
+	if err := handleLocked(o, u, currency, amount, 2); err != nil {
+		o.Rollback()
+		return err
 	}
 	o.Commit()
 	return nil
@@ -506,45 +492,6 @@ func TransferLocked(u *User, id int, des string) (err error) {
 		o.Rollback()
 		beego.Error(err)
 		return result.ErrCode(100102)
-	}
-	o.Commit()
-	return nil
-}
-
-func UnLock(u *User, id int) (err error) {
-	o := orm.NewOrm()
-	locked := KcLocked{Id: id}
-	if err := o.Read(&locked); err != nil {
-		return result.ErrCode(100102)
-	}
-	if locked.Uid != u.Id {
-		return result.ErrCode(100107)
-	}
-	if locked.Status != 0 {
-		return result.ErrCode(100410)
-	}
-	if time.Now().Sub(locked.ExpireDate) < 0 {
-		return result.ErrCode(100107)
-	}
-	o.Begin()
-	locked.Status = 1
-	if _, err := o.Update(&locked, "status"); err != nil {
-		o.Rollback()
-		beego.Error(err)
-		return result.ErrCode(100102)
-	}
-	wallet := KcWallet{Uid: u.Id, Currency: locked.Currency}
-	if err := o.ReadForUpdate(&wallet, "Uid", "Currency"); err != nil {
-		o.Rollback()
-		beego.Error(err)
-		return result.ErrCode(100402)
-	}
-	wallet.LockAmount -= locked.Amount
-	wallet.MiningAmount -= locked.Amount
-	if _, err := o.Update(&wallet, "LockAmount", "MiningAmount"); err != nil {
-		o.Rollback()
-		beego.Error(err)
-		return err
 	}
 	o.Commit()
 	return nil
@@ -726,181 +673,6 @@ func getFETDayQuota() float64 {
 	return float64(days * 1000000)
 }
 
-func CreateOrder(u *User, dest, base string, amount float64) error {
-	switch utils.Period {
-	case utils.UpComping: return result.ErrMsg("UpComing")
-	case utils.Three: return result.ErrMsg("Completed")
-	}
-	amounts := getFETSubscriptionNum()
-	if amounts == -1 {
-		return result.ErrCode(100102)
-	}
-	if amounts >= getFETDayQuota() {
-		return result.ErrMsg("completed today")
-	}
-	exchange, price := getFETSubscriptionHandle(amounts, base)
-	if exchange == 0 {
-		return result.ErrCode(100102)
-	}
-	if exchange == -1 {
-		return result.ErrCode(100405)
-	}
-
-	curAmount := utils.ShowFloat(amount * exchange, 2)
-	if exchange > 0 && curAmount < 0.01 {
-		return result.ErrCode(100406)
-	}
-
-	validAmount := getFETQuota(amounts) - getFETSubscribed(u.Id)
-	if curAmount > validAmount {
-		return result.ErrMsg(fmt.Sprintf("available %0.2f %s", validAmount, dest))
-	}
-	o := orm.NewOrm()
-	o.Begin()
-	if err := ReduceAmount(o, u.Id, amount, false, base, "subscription"); err != nil {
-		o.Rollback()
-		return err
-	}
-	if err := AddAmount(o, u.Id, curAmount, dest, "subscription"); err != nil {
-		o.Rollback()
-		beego.Error(err)
-		return result.ErrCode(100102)
-	}
-	//认购直接锁仓
-	switch utils.Period {
-	case utils.Footstone:
-		expire := utils.FootstoneExpireDate
-		if err := handleLocked(o, u, dest, curAmount, 0, expire); err != nil {
-			o.Rollback()
-			return err
-		}
-	case utils.Angel:
-		expire := time.Now().AddDate(0, 0, 60)
-		if err := handleLocked(o, u, dest, curAmount, 0, expire); err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	subscription := KcSubscription{
-		Uid: u.Id,
-		Currency: dest,
-		Base: base,
-		BaseAmount:amount,
-		CurAmount:curAmount,
-		Exchange: exchange,
-		Price: price,
-	}
-	if _, err := o.Insert(&subscription); err != nil {
-		o.Rollback()
-		beego.Error(err)
-		return result.ErrCode(100102)
-	}
-	o.Commit()
-
-	message := fmt.Sprintf("获得 %f %s", curAmount, dest)
-	messageEn := fmt.Sprintf("Get %f %s", curAmount, dest)
-	messageKo := fmt.Sprintf("얻다 %f %s", curAmount, dest)
-	messageJp := fmt.Sprintf("獲得 %f %s", curAmount, dest)
-	SetMessage(u.Id, message, messageEn, messageKo, messageJp, "")
-	return nil
-}
-
-func getOrderAddress(u *User, currency string) string {
-	var existList orm.ParamsList
-	var newList orm.ParamsList
-	o := orm.NewOrm()
-	if _, err := o.Raw(`SELECT address FROM kc_subscription WHERE uid = ? AND currency = ?`, u.Id, currency).ValuesFlat(&existList, "address"); err != nil {
-		beego.Error(err)
-		return ""
-	}
-	if len(existList) > 0 {
-		return existList[0].(string)
-	}
-
-	if _, err := o.Raw(`SELECT address FROM kc_address_pool WHERE currency = ? AND flag = 2`, currency).ValuesFlat(&newList, "address"); err != nil {
-		beego.Error(err)
-		return ""
-	}
-	if len(newList) > 0 {
-		return newList[rand.Intn(len(newList))].(string)
-	}
-	return ""
-}
-
-func CreateOrderNew(u *User, dest, base string, amount, curAmount float64) (string, error) {
-	switch utils.Period {
-	case utils.UpComping: return "", result.ErrMsg("UpComing")
-	case utils.Three: return "", result.ErrMsg("Completed")
-	}
-	amounts := getFETSubscriptionNum()
-	if amounts == -1 {
-		return "", result.ErrCode(100102)
-	}
-	if amounts >= getFETDayQuota() {
-		return "", result.ErrMsg("completed today")
-	}
-	exchange, price := getFETSubscriptionHandle(amounts, base)
-	if exchange == 0 {
-		return "", result.ErrCode(100102)
-	}
-	if exchange == -1 {
-		return "", result.ErrCode(100405)
-	}
-
-	getAmount := utils.ShowFloat(amount * exchange, 2)
-	if math.Abs(curAmount - getAmount) > 0.1 {
-		curAmount = getAmount
-	}
-	if exchange > 0 && curAmount < 0.01 {
-		return "", result.ErrCode(100406)
-	}
-
-	if utils.Period == utils.Footstone {
-		subscribed := getFETSubscribed(u.Id)
-		if subscribed == -1 {
-			return "", result.ErrCode(100102)
-		}
-		validAmount := getFETQuota(amounts) - subscribed
-		if validAmount < 0 {
-			validAmount = 0
-		}
-		if curAmount > validAmount {
-			return "", result.ErrMsg(fmt.Sprintf("available %0.2f %s", validAmount, dest))
-		}
-	}
-	address := getOrderAddress(u, base)
-	if address == "" {
-		beego.Error("没有地址？", base)
-		return "", result.ErrCode(100102)
-	}
-	o := orm.NewOrm()
-	if o.QueryTable("kc_subscription").Filter("uid", u.Id).Filter("status", 0).Exist() {
-		return "", result.ErrCode(100409)
-	}
-	orderCode := "CI" + cast.ToString(time.Now().Unix()) + utils.RandomCode(4)
-	class := 0
-	if utils.Period == utils.Angel {
-		class = 1
-	}
-	subscription := KcSubscription{
-		Uid: u.Id,
-		Order: orderCode,
-		Currency: dest,
-		Base: base,
-		BaseAmount:amount,
-		CurAmount:curAmount,
-		Exchange: exchange,
-		Price: price,
-		Address: address,
-		Class: class,
-	}
-	if _, err := o.Insert(&subscription); err != nil {
-		beego.Error(err)
-		return "", result.ErrCode(100102)
-	}
-	return orderCode, nil
-}
-
 func GetOrders(u *User, pageNo int64) *utils.Page {
 	o := orm.NewOrm()
 	query := o.QueryTable("kc_subscription").Filter("uid", u.Id).OrderBy("-id")
@@ -925,73 +697,6 @@ func GetOrder(u *User, order string) (*KcSubscription, error) {
 		return nil, result.ErrCode(100410)
 	}
 	return &subscription, nil
-}
-
-func CancelOrder(u *User, order string) error {
-	o := orm.NewOrm()
-	subscription := KcSubscription{Uid: u.Id, Order: order}
-	if err := o.Read(&subscription, "uid", "order"); err != nil {
-		return result.ErrCode(100410)
-	}
-	subscription.Status = 3
-	if _, err := o.Update(&subscription, "status"); err != nil {
-		return result.ErrCode(100102)
-	}
-	return nil
-}
-
-func SubmissionOrder(u *User, order, hash, screenshot string) error {
-	o := orm.NewOrm()
-	o.Begin()
-	subscription := KcSubscription{Uid: u.Id, Order: order}
-	if err := o.ReadForUpdate(&subscription, "uid", "order"); err != nil {
-		o.Rollback()
-		return result.ErrCode(100410)
-	}
-	if subscription.Status != 0 {
-		o.Rollback()
-		return result.ErrCode(100411)
-	}
-	submission := KcSubscriptionSubmission{Order: order, Txid: hash, Screenshot: screenshot}
-	if _, err := o.Insert(&submission); err != nil {
-		o.Rollback()
-		return result.ErrCode(100102)
-	}
-	subscription.Status = 1
-	if _, err := o.Update(&subscription, "status"); err != nil {
-		o.Rollback()
-		return result.ErrCode(100102)
-	}
-	o.Commit()
-	return nil
-}
-
-func GetFETExchange() map[string]float64 {
-	amounts := getFETSubscriptionNum()
-	var curs []*KcCurrency
-	res := map[string]float64{}
-	o := orm.NewOrm()
-	if _, err := o.QueryTable("kc_currency").Filter("currency__in", "USDT", "BTC", "ETH").All(&curs); err != nil {
-		beego.Error(err)
-		res["USDT"] = 0
-		res["BTC"] = 0
-		res["ETH"] = 0
-		return res
-	}
-	for _, cur := range curs {
-		exchange, _ := getFETSubscriptionPrice(amounts, cur.BasePrice)
-		res[cur.Currency] = utils.ShowFloat(exchange, 2)
-	}
-	return res
-}
-
-func GetFETPrice() float64 {
-	amounts := getFETSubscriptionNum()
-	_, price := getFETSubscriptionPrice(amounts, 0)
-	if price == 0 || price == -1 {
-		price = 1.00
-	}
-	return price
 }
 
 func GetHashrate(u *User) map[string]float64 {

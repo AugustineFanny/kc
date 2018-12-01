@@ -283,10 +283,9 @@ type KcLocked struct {
 	UnlockNum    int       `json:"unlock_num"` //已解锁期数
 	StartDate    time.Time `json:"start_date"   orm:"type(date)"`
 	Status       int       `json:"status"` //0:锁仓 1:解锁
-	ExpireDate   time.Time `json:"expire_date"  orm:"type(date)"`
 	Remark       string    `json:"remark"` //KcMining id
 	Share        int       `json:"share"` //0:未获得推广收益 1:已获
-	Class        int       `json:"class"` //0:基石认购 1:天使认购 2:锁仓
+	Class        int       `json:"class"` //1:认购 2:锁仓
 	CreateTime   time.Time `json:"create_time" orm:"auto_now_add;type(datetime)"`
 }
 
@@ -403,10 +402,9 @@ type KcSubscription struct {
 	BaseAmount  float64    `json:"base_amount"`
 	CurAmount   float64    `json:"currency_amount"`
 	Exchange    float64    `json:"exchange"` //兑换比例
-	Price       float64    `json:"price"`    //价格
 	Address     string     `json:"address"`
 	Status      int        `json:"status"` //0:未付款 1:已付款，待审核 2:完成 3:取消 4:超时取消
-	Class       int        `json:"class"` //0:基石认购 1:天使认购
+	Class       int        `json:"class"` //0:认购
 	Remark      string     `json:"remark"`
 	CreateTime  time.Time  `json:"create_time" orm:"auto_now_add;type(datetime)"`
 	AuthTime    time.Time  `json:"auth_time"   orm:"null;type(datetime)"`
