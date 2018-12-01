@@ -396,7 +396,6 @@ type Group struct {
 type KcSubscription struct {
 	Id          int        `json:"id"`
 	Uid         int        `json:"uid"`
-	Order       string     `json:"order" orm:"unique"`
 	Currency    string     `json:"currency"`
 	Base        string     `json:"base"`
 	BaseAmount  float64    `json:"base_amount"`
