@@ -2,14 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/validation"
 	"kuangchi_backend/models"
 	"kuangchi_backend/result"
-	"github.com/astaxie/beego"
 	"kuangchi_backend/utils"
 	"strconv"
-	"github.com/astaxie/beego/validation"
 	"time"
-	"kuangchi_backend/job"
 )
 
 type AdminController struct {
@@ -652,16 +651,6 @@ func (u *AdminController) ProfitMonth() {
 	startDate := u.GetString("start_date")
 	endDate := u.GetString("end_date")
 	u.Data["json"] = result.Success(models.GetProfitForMonth(desc, startDate, endDate))
-	u.ServeJSON()
-}
-
-// @router /admin/predistribution [get]
-func (u *AdminController) Predistribution() {
-	if u.GetString("desc", "share") == "share" {
-		u.Data["json"] = result.Success(job.PredistributionShare())
-	} else {
-		u.Data["json"] = result.Success(job.PredistributionMining())
-	}
 	u.ServeJSON()
 }
 
