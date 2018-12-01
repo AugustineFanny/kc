@@ -279,13 +279,11 @@ type KcLocked struct {
 	Uid          int       `json:"uid"          orm:"index"`
 	Currency     string    `json:"currency"     orm:"index"`
 	Amount       float64   `json:"amount"       orm:"digits(20);decimals(10)"`
-	TotalAmount  float64   `json:"total_amount" orm:"digits(20);decimals(10)"`
-	UnlockNum    int       `json:"unlock_num"` //已解锁期数
 	StartDate    time.Time `json:"start_date"   orm:"type(date)"`
 	Status       int       `json:"status"` //0:锁仓 1:解锁
 	Remark       string    `json:"remark"` //KcMining id
 	Share        int       `json:"share"` //0:未获得推广收益 1:已获
-	Class        int       `json:"class"` //1:认购 2:锁仓
+	Class        int       `json:"class"` //0:认购 1:锁仓
 	CreateTime   time.Time `json:"create_time" orm:"auto_now_add;type(datetime)"`
 }
 
@@ -356,7 +354,7 @@ type KcFundChange struct {
 	Currency   string    `json:"currency"    orm:"index"`
 	Amount     float64   `json:"amount"      orm:"digits(20);decimals(10)"`
 	Direction  int       `json:"direction"` //0:加 1:减
-	Desc       string    `json:"desc"` //说明 deposit:充币 distribute:分发 instation:站内转 withdraw:提币 mining:持有挖矿 share:分享挖矿 inlocked:锁仓转让
+	Desc       string    `json:"desc"` //说明 deposit:充币 distribute:分发 instation:站内转 withdraw:提币 mining:持有挖矿 share:分享挖矿 locked:锁仓倍增 inlocked:锁仓转让
 	Remark     string    `json:"remark" orm:"type(text)"`
 	CreateTime time.Time `json:"create_time" orm:"auto_now_add;type(datetime)"`
 }

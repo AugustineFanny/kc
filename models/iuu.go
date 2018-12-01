@@ -6,7 +6,9 @@ import (
 	"github.com/astaxie/beego/orm"
 	"kuangchi_backend/result"
 	"kuangchi_backend/utils"
+	"time"
 )
+
 func GetIUUExchange() map[string]float64 {
 	var curs []*KcCurrency
 	res := map[string]float64{
@@ -33,6 +35,48 @@ func GetIUUExchange() map[string]float64 {
 		}
 	}
 	return res
+}
+
+func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class int) (err error) {
+	wallet := KcWallet{Uid: u.Id, Currency: currency}
+	if err := o.ReadForUpdate(&wallet, "Uid", "Currency"); err != nil {
+		return result.ErrCode(100402)
+	}
+	if class == 1 { //锁仓倍增
+		fundChange := KcFundChange{Uid: u.Id, Currency: currency, Amount: amount, Direction: 0, Desc: "locked"}
+		if _, err := o.Insert(&fundChange); err != nil {
+			beego.Error(err)
+			return err
+		}
+
+		wallet.Amount += amount * 5
+		amount *= 6
+	}
+	wallet.LockAmount += amount
+	wallet.MiningAmount += amount
+	if wallet.Amount - wallet.LockAmount < 0 {
+		return result.ErrMsg(fmt.Sprintf("Active in assets not enough %f %s", amount, currency))
+	}
+	if _, err := o.Update(&wallet, "Amount", "LockAmount", "MiningAmount"); err != nil {
+		beego.Error(err)
+		return err
+	}
+	locked := KcLocked{
+		Uid: u.Id,
+		Currency: currency,
+		Amount: amount,
+		StartDate: time.Now(),
+		Class: class,
+	}
+	if u.InviterId == 0 {
+		//无需计算推广奖励
+		locked.Share = 1
+	}
+	if _, err := o.Insert(&locked); err != nil {
+		beego.Error(err)
+		return result.ErrCode(100102)
+	}
+	return nil
 }
 
 func CreateOrder(u *User, dest, base string, amount, curAmount float64) error {
@@ -88,10 +132,20 @@ func CreateOrder(u *User, dest, base string, amount, curAmount float64) error {
 func Locked(u *User, currency string, amount float64) (err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	if err := handleLocked(o, u, currency, amount * 6, 2); err != nil {
+	if err := handleLocked(o, u, currency, amount * 6, 1); err != nil {
 		o.Rollback()
 		return err
 	}
 	o.Commit()
 	return nil
+}
+
+func GetLocked(u *User, currency string) []*KcLocked {
+	var list []*KcLocked
+	o := orm.NewOrm()
+	_, err := o.QueryTable("kc_locked").Filter("uid", u.Id).Filter("currency", currency).OrderBy("-id").All(&list)
+	if err != nil {
+		return []*KcLocked{}
+	}
+	return list
 }

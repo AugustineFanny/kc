@@ -1,12 +1,11 @@
 package models
 
 import (
-	"kuangchi_backend/result"
-	"kuangchi_backend/utils"
+	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
-	"fmt"
-	"time"
+	"kuangchi_backend/result"
+	"kuangchi_backend/utils"
 	"strconv"
 	"strings"
 )
@@ -276,49 +275,6 @@ func UsableBalance(u *User, currency string, rates ...float64) float64 {
 	}
 
 	return utils.ShowFloat(res, 6)
-}
-
-func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class int) (err error) {
-	locked := KcLocked{
-		Uid: u.Id,
-		Currency: currency,
-		Amount: amount,
-		TotalAmount: amount,
-		StartDate: time.Now(),
-		Class: class,
-	}
-	if u.InviterId == 0 {
-		//无需计算推广奖励
-		locked.Share = 1
-	}
-	wallet := KcWallet{Uid: u.Id, Currency: locked.Currency}
-	if err := o.ReadForUpdate(&wallet, "Uid", "Currency"); err != nil {
-		return result.ErrCode(100402)
-	}
-	wallet.LockAmount += locked.Amount
-	wallet.MiningAmount += locked.Amount
-	if wallet.Amount - wallet.LockAmount < 0 {
-		return result.ErrMsg(fmt.Sprintf("Active in assets not enough %f %s", locked.Amount, locked.Currency))
-	}
-	if _, err := o.Update(&wallet, "LockAmount", "MiningAmount"); err != nil {
-		beego.Error(err)
-		return err
-	}
-	if _, err := o.Insert(&locked); err != nil {
-		beego.Error(err)
-		return result.ErrCode(100102)
-	}
-	return nil
-}
-
-func GetLocked(u *User, currency string) []*KcLocked {
-	var list []*KcLocked
-	o := orm.NewOrm()
-	_, err := o.QueryTable("kc_locked").Filter("uid", u.Id).Filter("currency", currency).OrderBy("-id").All(&list)
-	if err != nil {
-		return []*KcLocked{}
-	}
-	return list
 }
 
 func GetMining(u *User, currency string, pageNo int64) *utils.Page {
