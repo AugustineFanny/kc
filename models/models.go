@@ -402,7 +402,6 @@ type KcSubscription struct {
 	BaseAmount  float64    `json:"base_amount"`
 	CurAmount   float64    `json:"currency_amount"`
 	Exchange    float64    `json:"exchange"` //兑换比例
-	Address     string     `json:"address"`
 	Status      int        `json:"status"` //0:未付款 1:已付款，待审核 2:完成 3:取消 4:超时取消
 	Class       int        `json:"class"` //0:认购
 	Remark      string     `json:"remark"`

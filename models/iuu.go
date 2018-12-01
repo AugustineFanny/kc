@@ -68,6 +68,7 @@ func CreateOrder(u *User, dest, base string, amount, curAmount float64) error {
 		BaseAmount:amount,
 		CurAmount:curAmount,
 		Exchange: exchange,
+		Status: 2,
 	}
 	if _, err := o.Insert(&subscription); err != nil {
 		o.Rollback()
