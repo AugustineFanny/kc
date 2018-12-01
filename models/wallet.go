@@ -9,9 +9,6 @@ import (
 	"time"
 	"strconv"
 	"strings"
-	"math/rand"
-	"math"
-	"github.com/spf13/cast"
 )
 
 func AddAmount(o orm.Ormer, uid int, amount float64, currency, desc string, remark ...string) error {
@@ -446,12 +443,8 @@ func TransferLocked(u *User, id int, des string) (err error) {
 		Amount: locked.Amount,
 		TotalAmount: locked.Amount, //转让后均重新计算
 		StartDate: locked.StartDate,
-		ExpireDate: time.Now().AddDate(0, 0, 60),
 		Share: 1, //转让 不论是否已计算推广收益均不再计入
 		Class: locked.Class,
-	}
-	if utils.Period == utils.UpComping || utils.Period == utils.Footstone {
-		desLocked.ExpireDate = utils.FootstoneExpireDate
 	}
 	desLockedId, err := o.Insert(&desLocked)
 	if err != nil {
