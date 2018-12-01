@@ -132,7 +132,7 @@ func CreateOrder(u *User, dest, base string, amount, curAmount float64) error {
 func Locked(u *User, currency string, amount float64) (err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	if err := handleLocked(o, u, currency, amount * 6, 1); err != nil {
+	if err := handleLocked(o, u, currency, amount, 1); err != nil {
 		o.Rollback()
 		return err
 	}
