@@ -386,7 +386,6 @@ func TransferLocked(u *User, id int, des string) (err error) {
 		Uid: desUser.Id,
 		Currency: locked.Currency,
 		Amount: locked.Amount,
-		TotalAmount: locked.Amount, //转让后均重新计算
 		StartDate: locked.StartDate,
 		Share: 1, //转让 不论是否已计算推广收益均不再计入
 		Class: locked.Class,
