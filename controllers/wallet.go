@@ -216,8 +216,8 @@ func (u *WalletController) Locked() {
 	//	return
 	//}
 
-	//只有FET能锁仓
-	currency = "FET"
+	//只有IUU能锁仓
+	currency = "IUU"
 	var form struct {
 		Amount    float64  `json:"amount"`
 		FundPassword string `json:"fund_password"` //资金密码
