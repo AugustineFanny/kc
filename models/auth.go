@@ -73,7 +73,7 @@ func addInvite(u *User, inviteCode string) {
 			beego.Error(err)
 			return
 		}
-		_, err := o.Raw("INSERT INTO invite(uid, invite, grade, create_time) SELECT uid, ?, grade + 1, NOW() FROM invite WHERE invite = ?", u.Id, inviter.Id).Exec()
+		_, err := o.Raw("INSERT INTO invite(uid, invite, grade, create_time) SELECT uid, ?, grade + 1, NOW() FROM invite WHERE invite = ? and grade < 14", u.Id, inviter.Id).Exec()
 		if err != nil {
 			beego.Error(err)
 		}

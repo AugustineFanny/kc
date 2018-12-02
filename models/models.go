@@ -85,7 +85,11 @@ func (u *User) DoAsParents() string {
 	if u.Parents == "" {
 		return fmt.Sprintf("%d", u.Id)
 	} else {
-		return fmt.Sprintf("%s,%d", u.Parents, u.Id)
+		parents := strings.Split(u.Parents, ",")
+		if len(parents) > 14 {
+			parents = parents[:14]
+		}
+		return fmt.Sprintf("%s,%d", u.Id, strings.Join(parents, ","))
 	}
 }
 
@@ -359,6 +363,16 @@ type KcFundChange struct {
 	CreateTime time.Time `json:"create_time" orm:"auto_now_add;type(datetime)"`
 }
 
+type KcUnlock struct {
+	Id         int       `json:"-"`
+	Uid        int       `json:"uid"         orm:"index"`
+	Currency   string    `json:"currency"    orm:"index"`
+	Amount     float64   `json:"amount"      orm:"digits(20);decimals(10)"`
+	Desc       string    `json:"desc"` //说明 direct:直接推广 indirect: 间接推广 day:每日解锁 flow:流动解锁
+	Remark     string    `json:"remark" orm:"type(text)"`
+	CreateTime time.Time `json:"create_time" orm:"auto_now_add;type(datetime)"`
+}
+
 type KcAddressPool struct {
 	Id           int    `json:"-"`
 	Address      string `json:"address" orm:"unique"`
@@ -517,7 +531,7 @@ func init() {
 	orm.RegisterModel(new(User), new(Invite), new(RealName), new(KcWallet), new(KcLocked),
 		new(KcUserAddress), new(KcUserAddressRecord), new(KcAddressPool),
 		new(AdminOperationLog), new(KcMessage), new(Profile), new(Kyc),
-		new(Admin), new(KcCurrency), new(Group), new(KcFundChange),
+		new(Admin), new(KcCurrency), new(Group), new(KcFundChange), new(KcUnlock),
 		new(KcSubscription), new(KcSubscriptionSubmission), new(KcMining),
 		new(KcSimulation), new(KcSUser), new(KcSCurrency), new(KcSActivity), new(KcSLocked),
 	)

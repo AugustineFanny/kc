@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"kuangchi_backend/result"
 	"kuangchi_backend/utils"
+	"strings"
 	"time"
 )
 
@@ -35,6 +36,60 @@ func GetIUUExchange() map[string]float64 {
 		}
 	}
 	return res
+}
+
+func unLock(o orm.Ormer, u *User, currency string, amount float64, desc string) (err error) {
+	wallet := KcWallet{Uid: u.Id, Currency: currency}
+	if err := o.ReadForUpdate(&wallet, "Uid", "Currency"); err != nil {
+		beego.Error(err)
+		return result.ErrCode(100402)
+	}
+	if wallet.MiningAmount < amount {
+		amount = wallet.MiningAmount
+	}
+	wallet.LockAmount -= amount
+	wallet.MiningAmount -= amount
+	if _, err := o.Update(&wallet, "LockAmount", "MiningAmount"); err != nil {
+		beego.Error(err)
+		return err
+	}
+	record := KcUnlock{Uid: u.Id, Currency: currency, Amount: amount, Desc: desc}
+	if _, err := o.Insert(&record); err != nil {
+		beego.Error(err)
+		return err
+	}
+	return nil
+}
+
+func directPromotionRatio(amount float64) float64 {
+	switch {
+	case amount < 5000:
+		return 0.03
+	case amount >= 5000 && amount < 50000:
+		return 0.05
+	case amount >= 50000 && amount < 250000:
+		return 0.06
+	case amount >= 250000 && amount < 1000000:
+		return 0.07
+	case amount >= 1000000:
+		return 0.08
+	}
+	return 0
+}
+
+func indirectPromotionRatio(directNum, layer int) float64 {
+	if directNum <5 && layer < 2 {
+		return 0.005
+	} else if directNum < 10 && layer < 6 {
+		return 0.01
+	} else if directNum < 15 && layer < 9 {
+		return 0.02
+	} else if directNum < 20 && layer < 12 {
+		return 0.025
+	} else if directNum >= 20 && layer < 15 {
+		return 0.03
+	}
+	return 0
 }
 
 func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class int) (err error) {
@@ -75,6 +130,31 @@ func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class i
 	if _, err := o.Insert(&locked); err != nil {
 		beego.Error(err)
 		return result.ErrCode(100102)
+	}
+	if u.InviterId != 0 {
+		directPromotionUser := GetUserById(u.InviterId)
+		if directPromotionUser != nil {
+			directPromotionWallet := GetWallet(directPromotionUser, currency)
+			if len(directPromotionWallet) > 0 {
+				ratio := directPromotionRatio(directPromotionWallet[0].MiningAmount)
+				if err := unLock(o, directPromotionUser, currency, ratio * amount, "direct"); err != nil {
+					return err
+				}
+			}
+		}
+		parents := strings.Split(u.Parents, ",")
+		if len(parents) > 1 {
+			for index, parentID := range parents[1:] {
+				indirectPromotionUser := GetUserById(cast.ToInt(parentID))
+				directNum := GetInviteNum(indirectPromotionUser)["M1"]
+				ratio := indirectPromotionRatio(directNum, index)
+				if ratio > 0 {
+					if err := unLock(o, indirectPromotionUser, currency, ratio * amount, "indirect"); err != nil {
+						return err
+					}
+				}
+			}
+		}
 	}
 	return nil
 }

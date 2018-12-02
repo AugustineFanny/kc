@@ -156,6 +156,7 @@ func GetWallet(u *User, currency string) []*KcWallet {
 	o.Read(&wallet, "Uid", "Currency")
 	wallet.Amount = utils.ShowFloat(wallet.Amount, 6)
 	wallet.LockAmount = utils.ShowFloat(wallet.LockAmount, 6)
+	wallet.MiningAmount = utils.ShowFloat(wallet.MiningAmount, 6)
 	return []*KcWallet{&wallet}
 }
 
