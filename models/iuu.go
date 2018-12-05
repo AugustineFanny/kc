@@ -98,20 +98,22 @@ func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class i
 	if err := o.ReadForUpdate(&wallet, "Uid", "Currency"); err != nil {
 		return result.ErrCode(100402)
 	}
+	addAmount, lockAmount := 0.0, amount
 	if class == 1 { //锁仓倍增
 		fundChange := KcFundChange{Uid: u.Id, Currency: currency, Amount: amount, Direction: 0, Desc: "locked"}
 		if _, err := o.Insert(&fundChange); err != nil {
 			beego.Error(err)
 			return err
 		}
+		lockAmount = amount * 6
+		addAmount = amount * 5
 
-		wallet.Amount += amount * 5
-		amount *= 6
 	}
-	wallet.LockAmount += amount
-	wallet.MiningAmount += amount
+	wallet.Amount += addAmount
+	wallet.LockAmount += lockAmount
+	wallet.MiningAmount += lockAmount
 	if wallet.Amount - wallet.LockAmount < 0 {
-		return result.ErrMsg(fmt.Sprintf("Active in assets not enough %f %s", amount, currency))
+		return result.ErrMsg(fmt.Sprintf("Active in assets not enough %f %s", lockAmount, currency))
 	}
 	if _, err := o.Update(&wallet, "Amount", "LockAmount", "MiningAmount"); err != nil {
 		beego.Error(err)
@@ -120,7 +122,7 @@ func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class i
 	locked := KcLocked{
 		Uid: u.Id,
 		Currency: currency,
-		Amount: amount,
+		Amount: lockAmount,
 		StartDate: time.Now(),
 		Class: class,
 	}
@@ -148,7 +150,7 @@ func handleLocked(o orm.Ormer, u *User, currency string, amount float64, class i
 			for index, parentID := range parents[1:] {
 				indirectPromotionUser := GetUserById(cast.ToInt(parentID))
 				directNum := GetInviteNum(indirectPromotionUser)["M1"]
-				ratio := indirectPromotionRatio(directNum, index)
+				ratio := indirectPromotionRatio(directNum, index + 1)
 				if ratio > 0 {
 					if err := unLock(o, indirectPromotionUser, currency, ratio * amount, "indirect"); err != nil {
 						return err
